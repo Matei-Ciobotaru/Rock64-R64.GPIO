@@ -6,7 +6,7 @@ A Python GPIO library for the Rock64 single-board computer ([RPi.GPIO](https://s
 **R64.GPIO**<br>
 A re-implementation of the RPi.GPIO library for the Rock64. Currently under development.<br>
 
-I found that on kernel version 4.4.124 the pin channels are offset by 1000, so I added a function ("offset") to check the kernel version and add the offset accordingly. Please use the 'Armbian-Xenial-kernel-4.4.103-to-4.4.156' branch if you are still using those particula kernel versions.
+I found that on kernel version 4.4.124 the pin channels are offset by 1000, so I added a function ("offset") to check the kernel version and add the offset accordingly. Please use the 'Armbian-Xenial-kernel-4.4.103-to-4.4.156' branch if you are still using those particular kernel versions.
 
 
 See [the wiki](https://github.com/Leapo/Rock64-R64.GPIO/wiki) for documentation on [Functions](https://github.com/Leapo/Rock64-R64.GPIO/wiki/Functions) and [GPIO Modes](https://github.com/Leapo/Rock64-R64.GPIO/wiki/GPIO-Modes).
