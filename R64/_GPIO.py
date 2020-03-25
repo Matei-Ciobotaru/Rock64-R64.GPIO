@@ -37,24 +37,26 @@ BOARD_to_ROCK = [0, 0, 0, 89, 0, 88, 0, 0, 64, 0, 65, 0, 67, 0, 0, 100, 101, 0, 
 BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 37, 80, 67, 33, 36, 35, 100, 101, 102, 103, 34, 82]
 
 
-# From kernel version 4.4.103 up, the GPIO pins have an offset of 1000
+# From kernel version 4.4.103 up to kernel 4.4.156, the GPIO pins have an offset of 1000.
 # Edit values on below 2 lines in case the GPIO channel 
 # offset value changes with newer kernel versions.
 
-KverOffset = '4.4.103'
+KverOffsetStart = '4.4.103'
+KverOffsetStop = '4.4.156'
 valueOffset = 1000
 
 # This line is needed when setting the GPIO.ROCK channels
 
 ROCK_Channel_Offset = 0
 
-def offset(kverOffset, valueOffset):
+def offset(kverOffsetStart, kverOffsetStop, valueOffset):
     try:
-        kverOffset = int(kverOffset.replace('.', ''))
+        kverOffsetStart = int(kverOffsetStart.replace('.', ''))
+        kverOffsetStop = int(kverOffsetStop.replace('.', ''))
         kverLocal = int(release().split('-')[0].replace('.', ''))
-	value = int(valueOffset)
+        value = int(valueOffset)
 
-        if kverLocal >= kverOffset:
+        if kverLocal >= kverOffsetStart and kverLocal < kverOffsetStop:
 # Apply offset to channel lists
 
             global ROCK_Channel_Offset
@@ -74,7 +76,7 @@ def offset(kverOffset, valueOffset):
         print("Error: Unable to set GPIO channel offset: {0}".format(err))
 
 
-offset(KverOffset, valueOffset)
+offset(KverOffsetStart, KverOffsetStop, valueOffset)
 
 # Define dynamic module variables
 gpio_mode = None
