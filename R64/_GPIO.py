@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 # Allison Creely, 2018, LGPLv3 License
-# Edited: Matei Ciobotaru 2018-05-14
 # Rock 64 GPIO Library for Python
 
 # Import modules
@@ -9,7 +8,6 @@ import os.path
 from multiprocessing import Process, Value
 from time import time
 from time import sleep
-from platform import release
 
 # Define static module variables
 var_gpio_root = '/sys/class/gpio'
@@ -29,54 +27,9 @@ VERSION = '0.6.3'
 RPI_INFO = {'P1_REVISION': 3, 'RAM': '1024M', 'REVISION': 'a22082', 'TYPE': 'Pi 3 Model B', 'PROCESSOR': 'BCM2837', 'MANUFACTURER': 'Embest'}
 
 # Define GPIO arrays
-
-ROCK_valid_channels = [27, 32, 33, 34, 35, 36, 37, 38, 64, 65, 67, 68, 69, 76, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 96, 97, 98, 100, 101, 102, 103, 104]
-
-BOARD_to_ROCK = [0, 0, 0, 89, 0, 88, 0, 0, 64, 0, 65, 0, 67, 0, 0, 100, 101, 0, 102, 97, 0, 98, 103, 96, 104, 0, 76, 68, 69, 0, 0, 0, 38, 32, 0, 33, 37, 34, 36, 0, 35, 0, 0, 81, 82, 87, 83, 0, 0, 80, 79, 85, 84, 27, 86, 0, 0, 0, 0, 0, 0, 89, 88]
-
+ROCK_valid_channels = [27, 32, 33, 34, 35, 36, 37, 38, 60, 64, 65, 67, 68, 69, 76, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 96, 97, 98, 100, 101, 102, 103, 104]
+BOARD_to_ROCK = [0, 0, 0, 89, 0, 88, 0, 60, 64, 0, 65, 0, 67, 0, 0, 100, 101, 0, 102, 97, 0, 98, 103, 96, 104, 0, 76, 68, 69, 0, 0, 0, 38, 32, 0, 33, 37, 34, 36, 0, 35, 0, 0, 81, 82, 87, 83, 0, 0, 80, 79, 85, 84, 27, 86, 0, 0, 0, 0, 0, 0, 89, 88]
 BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 37, 80, 67, 33, 36, 35, 100, 101, 102, 103, 34, 82]
-
-
-# From kernel version 4.4.103 up to kernel 4.4.156, the GPIO pins have an offset of 1000.
-# Edit values on below 2 lines in case the GPIO channel 
-# offset value changes with newer kernel versions.
-
-KverOffsetStart = '4.4.103'
-KverOffsetStop = '4.4.156'
-valueOffset = 1000
-
-# This line is needed when setting the GPIO.ROCK channels
-
-ROCK_Channel_Offset = 0
-
-def offset(kverOffsetStart, kverOffsetStop, valueOffset):
-    try:
-        kverOffsetStart = int(kverOffsetStart.replace('.', ''))
-        kverOffsetStop = int(kverOffsetStop.replace('.', ''))
-        kverLocal = int(release().split('-')[0].replace('.', ''))
-        value = int(valueOffset)
-
-        if kverLocal >= kverOffsetStart and kverLocal < kverOffsetStop:
-# Apply offset to channel lists
-
-            global ROCK_Channel_Offset
-            ROCK_Channel_Offset = value
-            global ROCK_valid_channels 
-            ROCK_valid_channels = [ channel + value for channel in ROCK_valid_channels ]
-            global BOARD_to_ROCK 
-            BOARD_to_ROCK = [ channel + value for channel in BOARD_to_ROCK ]
-            global BCM_to_ROCK 
-            BCM_to_ROCK = [ channel + value for channel in BCM_to_ROCK ]
-        else:
-            pass
-
-    except ValueError as err:
-        print("Invalid kernel version and/or offset value passed to offset(): {0}".format(err))
-    except Exception as err:
-        print("Error: Unable to set GPIO channel offset: {0}".format(err))
-
-
-offset(KverOffsetStart, KverOffsetStop, valueOffset)
 
 # Define dynamic module variables
 gpio_mode = None
@@ -88,13 +41,13 @@ def setmode(mode):
         global gpio_mode
         gpio_mode = mode
     else:
-        print("An invalid mode ({}) was passed to setmode(). Use one of the following: ROCK, BOARD, BCM").format(mode)
+        print("An invalid mode ({}) was passed to setmode(). Use one of the following: ROCK, BOARD, BCM".format(mode))
 
 def getmode():
     if gpio_mode in ['ROCK','BOARD','BCM']:
         return gpio_mode
     else:
-        print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
+        print("Error: An invalid mode ({}) is currently set".format(gpio_mode))
 
 def get_gpio_number(channel):
     if gpio_mode in ['ROCK','BOARD','BCM']:
@@ -104,12 +57,12 @@ def get_gpio_number(channel):
         if gpio_mode == BCM:
             channel_new = BCM_to_ROCK[channel]
         if gpio_mode == ROCK:
-            channel_new = channel + ROCK_Channel_Offset
+            channel_new = channel
         # Check that the GPIO is valid
         if channel_new in ROCK_valid_channels:
             return channel_new
         else:
-            print("Error: GPIO not supported on {0} {1}").format(gpio_mode, channel)
+            print("Error: GPIO not supported on {0} {1}".format(gpio_mode, channel))
             return None
     else:
         print("RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.ROCK), GPIO.setmode(GPIO.BOARD), or GPIO.setmode(GPIO.BCM)")
@@ -117,7 +70,7 @@ def get_gpio_number(channel):
 
 def gpio_function(channel):
     # Translate the GPIO based on the current gpio_mode
-    channel_int = get_gpio_number(channel, valueOffset)
+    channel_int = get_gpio_number(channel)
     if channel_int == None:
         return
     # Get direction of requested GPIO
@@ -139,7 +92,7 @@ def setwarnings(state=True):
         global warningmode
         warningmode = state
     else:
-        print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0").format(state)
+        print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0".format(state))
 
 def validate_direction(channel, validation_type='both'):
     # Translate the GPIO based on the current gpio_mode
@@ -156,13 +109,13 @@ def validate_direction(channel, validation_type='both'):
             direction = 'none'
         # Perform sanity checks
         if (validation_type == 'input') and (direction != 'i'):
-            print("You must setup() the GPIO channel ({0} {1}) as an input first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) as an input first".format(gpio_mode, channel))
             return 0
         elif (validation_type == 'output') and (direction != 'o'):
-            print("You must setup() the GPIO channel ({0} {1}) as an output first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) as an output first".format(gpio_mode, channel))
             return 0
         elif ((validation_type == 'both') and (direction not in ['i', 'o'])) or (direction == 'none'):
-            print("You must setup() the GPIO channel ({0} {1}) first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) first".format(gpio_mode, channel))
             return 0
         else:
             return 1
@@ -185,7 +138,7 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
         var_gpio_exists = os.path.exists(var_gpio_filepath)
         if var_gpio_exists == 1:
             if warningmode == 1:
-                print("This channel ({0} {1}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(gpio_mode, channel[index])
+                print("This channel ({0} {1}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.".format(gpio_mode, channel[index]))
         # Export GPIO if an export doesn't already exist
         else:
             try:
@@ -260,7 +213,7 @@ def input(channel):
     try:
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         with open(var_gpio_filepath, 'r') as file:
-            return file.read(1)
+            return int(file.read(1))
     except:
         print("Error: Unable to get GPIO value")
 
@@ -389,7 +342,7 @@ class PWM:
         self.state = 0
         return
 
-    def start(self, dutycycle, pwm_precision=HIGH):
+    def start(self, dutycycle, pwm_precision=LOW):
         if (dutycycle < 0.0) or (dutycycle > 100.0):
             print("dutycycle must have a value from 0.0 to 100.0")
             return
@@ -401,9 +354,12 @@ class PWM:
         self.state = 1
 
     def stop(self):
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(self.gpio) + "/value"
         self.p.terminate()
         self.p.join()
         self.state = 0
+        with open(var_gpio_filepath, 'w') as file:
+            file.write('0')
 
     @staticmethod
     def pwm_busywait(wait_time):
@@ -416,7 +372,7 @@ class PWM:
         self.sleep_high = (1.0 / self.freq) * ((100 - (100 - self.dutycycle)) / 100.0)
 
     @staticmethod
-    def pwm_process(channel, sleep_high, sleep_low, precision=HIGH):
+    def pwm_process(channel, sleep_high, sleep_low, precision=LOW):
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
         # Note: Low precision mode greatly reduces CPU usage, but accuracy will depend upon your kernel.
         # p.start(dutycycle, pwm_precision=GPIO.LOW)
@@ -438,11 +394,6 @@ class PWM:
                         file.write('0')
                     sleep(sleep_low)
         except:
-            try:
-                with open(var_gpio_filepath, 'w') as file:
-                    file.write('0')
-            except:
-                pass
             print("Warning: PWM process ended prematurely")
 
     def ChangeFrequency(self, frequency):
