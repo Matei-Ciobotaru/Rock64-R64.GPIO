@@ -342,7 +342,7 @@ class PWM:
         self.state = 0
         return
 
-    def start(self, dutycycle, pwm_precision=LOW):
+    def start(self, dutycycle, pwm_precision=HIGH):
         if (dutycycle < 0.0) or (dutycycle > 100.0):
             print("dutycycle must have a value from 0.0 to 100.0")
             return
@@ -354,12 +354,9 @@ class PWM:
         self.state = 1
 
     def stop(self):
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(self.gpio) + "/value"
         self.p.terminate()
         self.p.join()
         self.state = 0
-        with open(var_gpio_filepath, 'w') as file:
-            file.write('0')
 
     @staticmethod
     def pwm_busywait(wait_time):
@@ -372,7 +369,7 @@ class PWM:
         self.sleep_high = (1.0 / self.freq) * ((100 - (100 - self.dutycycle)) / 100.0)
 
     @staticmethod
-    def pwm_process(channel, sleep_high, sleep_low, precision=LOW):
+    def pwm_process(channel, sleep_high, sleep_low, precision=HIGH):
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
         # Note: Low precision mode greatly reduces CPU usage, but accuracy will depend upon your kernel.
         # p.start(dutycycle, pwm_precision=GPIO.LOW)
@@ -394,6 +391,11 @@ class PWM:
                         file.write('0')
                     sleep(sleep_low)
         except:
+            try:
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write('0')
+            except:
+                pass
             print("Warning: PWM process ended prematurely")
 
     def ChangeFrequency(self, frequency):
