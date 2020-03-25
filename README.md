@@ -25,7 +25,7 @@ Once imported, syntax for implemented functions should be identical to RPi.GPIO.
 
 # Test Platform
 
-All testing of this library is done on a Rock64 (4GB model) running [Armbian_5.42_Rock64](https://dl.armbian.com/rock64/Ubuntu_xenial_default.7z) (Ubuntu Xenial).
+All testing of this library is done on a Rock64 (4GB model) running [Armbian_Buster](https://www.armbian.com/rock64/).
 
 Compatability with other versions of Linux running on the Rock64 is not gauranteed.
 
